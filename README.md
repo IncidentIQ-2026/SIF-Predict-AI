@@ -45,7 +45,7 @@ Risk Classification & Insights
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/IncidentIQ-2026/SIF-Prediction-AI.git
+git clone https://github.com/IncidentIQ-2026/SIF-Predict-AI.git
 ```
 
 ## 📊 Input
