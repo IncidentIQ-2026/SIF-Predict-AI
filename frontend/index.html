@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OIL SIF Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">O</span><div><strong>OIL</strong><small>SIF INTELLIGENCE</small></div></div>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav>
+        <button class="nav-item active" data-view="overview"><span>◈</span> Overview</button>
+        <button class="nav-item" data-view="analyzer"><span>✦</span> AI Analyzer</button>
+        <button class="nav-item" data-view="reports"><span>▤</span> Safety Reports</button>
+        <button class="nav-item" data-view="alerts"><span>△</span> SIF Alerts <b id="alert-count">0</b></button>
+        <button class="nav-item" data-view="precursors"><span>⌁</span> Precursor Analysis</button>
+        <button class="nav-item" data-view="actions"><span>✓</span> Corrective Actions</button>
+      </nav>
+      <div class="sidebar-foot"><div class="status-dot"></div><div><strong>System online</strong><small>Model v1.0 • API connected</small></div></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><div class="eyebrow">HSSE / SAFETY INTELLIGENCE</div><h1 id="page-title">Executive overview</h1></div><div class="top-actions"><span class="live-pill"><i></i> LIVE DATA</span><select id="role-select"><option>HSE Officer</option><option>Supervisor</option><option>Management / Admin</option><option>Worker</option></select><div class="avatar">HS</div></div></header>
+      <div id="loading" class="loading">Loading safety intelligence...</div>
+      <section id="view-overview" class="view active-view">
+        <div class="intro"><div><h2>Good morning, HSE team.</h2><p>Monitor the signals that precede serious harm across OIL operations.</p></div><button class="primary" data-go="analyzer">＋ Analyze a report</button></div>
+        <div class="metric-grid"><article class="metric"><span>Total reports</span><strong id="total-reports">—</strong><small>All submitted reports</small></article><article class="metric accent"><span>SIF potential</span><strong id="sif-reports">—</strong><small id="sif-rate">— of all reports</small></article><article class="metric"><span>Non-SIF reports</span><strong id="non-sif-reports">—</strong><small>Lower immediate potential</small></article><article class="metric danger"><span>High-risk alerts</span><strong id="high-alerts">—</strong><small>Require HSE attention</small></article></div>
+        <div class="chart-grid"><article class="panel wide"><div class="panel-head"><div><h3>SIF precursor trend</h3><p>Daily reports and SIF-potential signals</p></div><span class="panel-tag">LAST 30 DAYS</span></div><canvas id="trend-chart"></canvas></article><article class="panel"><div class="panel-head"><div><h3>Life-Saving Rules</h3><p>Precursor density by rule</p></div></div><canvas id="rules-chart"></canvas></article></div>
+        <div class="table-grid"><article class="panel"><div class="panel-head"><div><h3>Highest exposure sites</h3><p>Ranked by SIF precursor density</p></div><button class="text-button" data-go="precursors">View all →</button></div><div id="site-ranking" class="ranking"></div></article><article class="panel"><div class="panel-head"><div><h3>Recurring precursors</h3><p>Critical barriers showing up repeatedly</p></div></div><div id="precursor-list" class="precursor-list"></div></article></div>
+      </section>
+      <section id="view-analyzer" class="view"><div class="section-heading"><div><div class="eyebrow">AI / NLP ENGINE</div><h2>Analyze a safety report</h2><p>Submit free-text observations for an explainable SIF potential assessment.</p></div></div><div class="analyzer-layout"><form id="analysis-form" class="panel form-panel"><label>Report narrative<textarea id="report-text" required minlength="12" placeholder="Describe what happened, what controls were missing, and the potential consequence..."></textarea></label><div class="field-grid"><label>Report type<select id="report-type"><option>Near Miss</option><option>Unsafe Act</option><option>Unsafe Condition</option><option>Incident</option></select></label><label>Site / location<input id="location" value="Duliajan Central" required></label><label>Department<input id="department" value="Maintenance" required></label><label>Activity<input id="activity" value="Equipment Maintenance" required></label></div><button class="primary" type="submit">✦ Analyze and save report</button><div id="analysis-error" class="error"></div></form><div id="analysis-result" class="panel result-panel empty"><span class="result-icon">✦</span><h3>Awaiting a report</h3><p>The model result, control mapping and recommended review priority will appear here.</p></div></div></section>
+      <section id="view-reports" class="view"><div class="section-heading"><div><div class="eyebrow">REPORT REGISTER</div><h2>Safety reports</h2><p>Review model classifications and verification status.</p></div></div><div class="panel"><div class="toolbar"><input id="report-search" placeholder="Search narrative, site or activity..."/><select id="risk-filter"><option value="">All risk levels</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></div><div class="data-table-wrap"><table><thead><tr><th>Report</th><th>Site</th><th>Rule</th><th>AI result</th><th>Status</th></tr></thead><tbody id="reports-table"></tbody></table></div></div></section>
+      <section id="view-alerts" class="view"><div class="section-heading"><div><div class="eyebrow">PRIORITY QUEUE</div><h2>SIF alerts</h2><p>High-risk signals awaiting HSE acknowledgement.</p></div></div><div id="alerts-grid" class="alert-grid"></div></section>
+      <section id="view-precursors" class="view"><div class="section-heading"><div><div class="eyebrow">PATTERN DETECTION</div><h2>Precursor analysis</h2><p>Where critical-control exposure is concentrating.</p></div></div><div class="chart-grid"><article class="panel wide"><div class="panel-head"><h3>Site SIF density ranking</h3></div><div id="precursor-sites" class="ranking large"></div></article><article class="panel"><div class="panel-head"><h3>Top activities</h3></div><div id="activity-ranking" class="ranking"></div></article></div></section>
+      <section id="view-actions" class="view"><div class="section-heading"><div><div class="eyebrow">CONTROL MANAGEMENT</div><h2>Corrective actions</h2><p>Track accountability from finding to closure.</p></div><button class="primary" id="new-action">＋ New action</button></div><div class="panel"><div class="data-table-wrap"><table><thead><tr><th>Action</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th></tr></thead><tbody id="actions-table"></tbody></table></div></div></section>
+    </main>
+  </div>
+  <script src="/script.js"></script>
+</body>
+</html>

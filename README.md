@@ -17,62 +17,85 @@ The system helps identify high-risk reports and supports **proactive workplace s
 * Help organizations improve preventive safety measures
 
 ## 🔄 Workflow
+# OIL SIF Intelligence
+
+Production-style FastAPI + vanilla JavaScript safety intelligence platform for SIH 2026 problem statement **SIH26165**. It classifies Unsafe Act, Unsafe Condition, Near Miss, and Incident narratives for Serious Injury & Fatality potential, maps critical controls to IOGP Life-Saving Rules, and tracks review work.
+
+The included records are synthetic demo data only. They are not OIL operational data. Replace `backend/data/safety_reports.csv` with an authorized dataset after validating its schema and access controls.
+
+## Features
+
+- TF-IDF + class-balanced Logistic Regression baseline with saved artifacts and metrics.
+- Explainable rule-based fallback when model artifacts are absent.
+- SIF label, probability, risk level, activity, barrier failure, consequence, and Life-Saving Rule extraction.
+- SQLite development database using SQLAlchemy models that can migrate to PostgreSQL through `DATABASE_URL`.
+- Live dashboard for sites, activities, rules, trends, alerts, reports, precursor density, and corrective actions.
+- Responsive HTML5/CSS3/vanilla JS frontend with Chart.js. No React or JSX.
+- Pydantic validation, CORS configuration, status updates, and high-risk alert creation.
+
+## Project structure
 
 ```text
-Safety Report
-     ↓
-Text Preprocessing
-     ↓
-NLP / Feature Extraction
-     ↓
-AI/ML Model
-     ↓
-SIF Risk Prediction
-     ↓
-Risk Classification & Insights
+frontend/                 Static dashboard
+backend/main.py           FastAPI app and static serving
+backend/database.py       SQLAlchemy engine and session
+backend/models.py         users, reports, ai_analysis, alerts, actions
+backend/schemas.py        API validation and response models
+backend/routes/           REST endpoints
+backend/services/         NLP, risk, and precursor logic
+backend/ml/               Dataset generator, training, artifacts
+backend/data/             Synthetic safety_reports.csv (1,000 rows)
 ```
 
-## 🛠️ Technologies
+## Install and run
 
-[Yet to be discussed/planned]
+Requirements: Python 3.11+ and a modern browser.
 
-## 📂 Project Structure
-
-[Soon]
-
-## 🚀 Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/IncidentIQ-2026/SIF-Predict-AI.git
+```powershell
+cd SIF-Predict-AI
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r backend\requirements.txt
+python -m backend.ml.generate_dataset
+python -m backend.ml.train_model
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## 📊 Input
+Open <http://127.0.0.1:8000>. The API docs are at <http://127.0.0.1:8000/docs>.
 
-The system takes workplace safety reports such as:
+For PostgreSQL, set `DATABASE_URL` before starting, for example `postgresql+psycopg://user:password@localhost/oil_sif`. Install the matching PostgreSQL driver separately.
 
-* Unsafe Act Reports
-* Unsafe Condition Reports
-* Near-Miss Reports
+Optional environment variables: `APP_NAME`, `DATABASE_URL`, `CORS_ORIGINS`, and `MODEL_DIR`.
 
-## 📈 Output
+## ML pipeline
 
-The system provides:
+```powershell
+python -m backend.ml.generate_dataset
+python -m backend.ml.train_model
+```
 
-* SIF precursor prediction
-* Risk classification
-* Prediction insights
-* Identification of potentially high-risk reports
+Training performs a stratified train/test split, TF-IDF unigram/bigram extraction, balanced Logistic Regression, and writes `backend/ml/artifacts/model.joblib`, `vectorizer.joblib`, and `metrics.json`. The metrics file includes accuracy, precision, recall, F1, and confusion matrix. Class balancing prioritizes recall for SIF-Potential. A Transformer can later replace `services/nlp_engine.py` while retaining its `predict()` contract.
 
-## 🏆 SIH 2026
+## API examples
 
-This project is developed as part of **Smart India Hackathon (SIH) 2026** to address the challenge of identifying Serious Injury & Fatality precursors from workplace safety reports.
+Analyze and persist a report:
 
-## 👥 Team
+```powershell
+$body = @{ report_text = 'Maintenance was being carried out while the equipment was still energized and proper isolation was not confirmed.'; report_type = 'Near Miss'; location = 'Duliajan Central'; department = 'Maintenance'; activity = 'Equipment Maintenance'; persist = $true } | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:8000/analysis/ -Method Post -ContentType 'application/json' -Body $body
+```
 
-Developed by our SIH 2026 team with the goal of using **AI and NLP for proactive workplace safety management**.
+Available endpoints include `POST /reports/`, `GET /reports/`, `GET /reports/{id}`, `POST /analysis/`, `GET /dashboard/stats`, `GET /dashboard/sif-trend`, `GET /dashboard/top-sites`, `GET /dashboard/top-activities`, `GET /dashboard/top-rules`, `GET /dashboard/precursors`, `GET /alerts/`, `PATCH /alerts/{id}`, `POST /actions/`, `GET /actions/`, and `PATCH /actions/{id}`.
 
-## 📄 License
+Expected result for the demo narrative is an `Energy Isolation` mapping, high risk, a dynamically calculated probability, and a persisted high-risk alert.
 
-This project is developed for educational and hackathon purposes.
+## Testing
+
+With the server running, check the complete path:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/dashboard/stats
+```
+
+Then submit the API example above and confirm the new row appears in Safety Reports, SIF Alerts, and dashboard counts. For a production deployment, add authenticated identity, PostgreSQL migrations, audit logging, rate limiting, and an authorized OIL-labelled validation set before using predictions operationally.
