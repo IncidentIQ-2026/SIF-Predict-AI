@@ -28,6 +28,8 @@ The included records are synthetic demo data only. They are not OIL operational 
 - TF-IDF + class-balanced Logistic Regression baseline with saved artifacts and metrics.
 - Explainable rule-based fallback when model artifacts are absent.
 - SIF label, probability, risk level, activity, barrier failure, consequence, and Life-Saving Rule extraction.
+- Self-service registration and login with PBKDF2 password hashing and expiring bearer sessions.
+- High-risk hazard email delivery to the submitting worker and optional HSE distribution list.
 - SQLite development database using SQLAlchemy models that can migrate to PostgreSQL through `DATABASE_URL`.
 - Live dashboard for sites, activities, rules, trends, alerts, reports, precursor density, and corrective actions.
 - Responsive HTML5/CSS3/vanilla JS frontend with Chart.js. No React or JSX.
@@ -66,6 +68,20 @@ Open <http://127.0.0.1:8000>. The API docs are at <http://127.0.0.1:8000/docs>.
 For PostgreSQL, set `DATABASE_URL` before starting, for example `postgresql+psycopg://user:password@localhost/oil_sif`. Install the matching PostgreSQL driver separately.
 
 Optional environment variables: `APP_NAME`, `DATABASE_URL`, `CORS_ORIGINS`, and `MODEL_DIR`.
+
+### Email alerts
+
+Configure SMTP in the project root `.env` file before starting FastAPI. The repository includes `.env.example`; copy it to `.env` and replace the placeholders:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+For Gmail, set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USERNAME` and `SMTP_FROM` to the sending Gmail address, `SMTP_PASSWORD` to a Google App Password, and `HSE_ALERT_EMAILS` to comma-separated HSE recipients. `.env` is ignored by Git and must never be committed.
+
+The app does not expose SMTP credentials in the frontend. Without `SMTP_HOST`, high-risk reports continue to be stored and surfaced in the dashboard, while the backend logs that delivery is not configured. For production, use a secret manager and a transactional provider or organizational SMTP relay.
 
 ## ML pipeline
 

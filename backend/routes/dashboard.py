@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import case, desc, func, select
 from sqlalchemy.orm import Session
+from ..auth import current_user
 from ..database import get_db
-from ..models import Report
+from ..models import AuthUser, Report
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
@@ -13,7 +14,7 @@ def rows(db, field):
 
 
 @router.get("/stats")
-def stats(db: Session = Depends(get_db)):
+def stats(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)):
     total = db.scalar(select(func.count(Report.id))) or 0
     sif = db.scalar(select(func.count(Report.id)).where(Report.sif_label == "SIF-Potential")) or 0
     high = db.scalar(select(func.count(Report.id)).where(Report.risk_level == "HIGH")) or 0
@@ -21,22 +22,22 @@ def stats(db: Session = Depends(get_db)):
 
 
 @router.get("/sif-trend")
-def sif_trend(db: Session = Depends(get_db)):
+def sif_trend(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)):
     day = func.date(Report.created_at)
     stmt = select(day.label("date"), func.count(Report.id).label("reports"), func.sum(case((Report.sif_label == "SIF-Potential", 1), else_=0)).label("sif_reports")).group_by(day).order_by(day)
     return [{"date": str(row.date), "reports": row.reports, "sif_reports": row.sif_reports or 0} for row in db.execute(stmt).all()]
 
 
 @router.get("/top-sites")
-def top_sites(db: Session = Depends(get_db)): return rows(db, Report.location)
+def top_sites(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)): return rows(db, Report.location)
 
 @router.get("/top-activities")
-def top_activities(db: Session = Depends(get_db)): return rows(db, Report.activity)
+def top_activities(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)): return rows(db, Report.activity)
 
 @router.get("/top-rules")
-def top_rules(db: Session = Depends(get_db)): return rows(db, Report.life_saving_rule)
+def top_rules(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)): return rows(db, Report.life_saving_rule)
 
 
 @router.get("/precursors")
-def precursors(db: Session = Depends(get_db)):
+def precursors(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)):
     return {"barriers": rows(db, Report.barrier_failure), "rules": rows(db, Report.life_saving_rule), "activities": rows(db, Report.activity)}

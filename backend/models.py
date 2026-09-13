@@ -64,3 +64,14 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120))
     role: Mapped[str] = mapped_column(String(40))
+
+class AuthUser(Base):
+    __tablename__ = "auth_users"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    role: Mapped[str] = mapped_column(String(40), default="Worker", index=True)
+    password_hash: Mapped[str] = mapped_column(String(300))
+    is_active: Mapped[bool] = mapped_column(default=True)
+

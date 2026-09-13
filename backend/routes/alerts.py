@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
+from ..auth import current_user
 from ..database import get_db
-from ..models import Alert
+from ..models import Alert, AuthUser
 from ..schemas import AlertRead, AlertUpdate
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
 
 @router.get("/", response_model=list[AlertRead])
-def list_alerts(db: Session = Depends(get_db)):
+def list_alerts(db: Session = Depends(get_db), user: AuthUser = Depends(current_user)):
     return list(db.scalars(select(Alert).options(joinedload(Alert.report)).order_by(Alert.created_at.desc())).unique().all())
 
 
